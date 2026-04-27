@@ -34,18 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\..\Carbon Server\server\carbon\plugins\Entity_list.json">
-      <Link>Entity_list.json</Link>
-    </None>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\Carbon Server\server\carbon\plugins\EntityTester.cs">
-      <Link>EntityTester.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Carbon Server\server\carbon\plugins\Sandbox.cs">
-      <Link>Sandbox.cs</Link>
-    </Compile>
+    <None Include="Entity_list.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Icons\admin_cliff_large_a.prefab.png" />
@@ -487,6 +477,10 @@
     <Content Include="Icons\xmas_tree_a.deployed.prefab.png" />
     <Content Include="Icons\xorswitch.prefab.png" />
     <Content Include="Icons\ziplinemountable.prefab.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EntityTester.cs" />
+    <Compile Include="Sandbox.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
