@@ -8,6 +8,7 @@ using Oxide.Game.Rust.Cui;
 using Oxide.Core.Libraries.Covalence;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Facepunch.Models.Leaderboard;
 
 namespace Oxide.Plugins
 {
@@ -107,45 +108,22 @@ namespace Oxide.Plugins
 
         private void LoadLibrary()
         {
+
             PrefabLibrary.Clear();
 
-            // 1. SCAN ENTITIES (World Objects)
-            foreach (var path in GameManifest.Current.entities)
+            foreach ( var entry in AssetIndex )
             {
-                if (string.IsNullOrEmpty(path)) continue;
-                string lowerPath = path.ToLower();
-                if (lowerPath.Contains("_lod") || lowerPath.Contains("/collision/") || lowerPath.Contains("/proxy/"))
-                    continue;
-
-                string shortName = path.Split('/').Last().Replace(".prefab", "");
-                string iconUrl = "";
-                RemoteIconMapping.TryGetValue(shortName.ToLower(), out iconUrl);
-
-                PrefabLibrary.Add(new SpawnableEntry
+                if ( entry.IsItem )
                 {
-                    ShortName = shortName,
-                    PrefabPath = path,
-                    Category = GetCategoryFromPath(lowerPath),
-                    IconUrl = iconUrl,
-                    IsItem = false
-                });
-            }
+                    ItemDefinition itemDef = ItemManager.FindItemDefinition(entry.ShortName);
 
-            // 2. SCAN ITEMS (Guns, Ammo, Tools, Components)
-            foreach (var item in ItemManager.itemList)
-            {
-                string iconUrl = "";
-                RemoteIconMapping.TryGetValue(item.shortname.ToLower(), out iconUrl); // ADD .ToLower()
+                    if ( itemDef != null)
+                    {
+                        entry.ItemID = itemDef.itemid;
+                    }
+                }
 
-                PrefabLibrary.Add(new SpawnableEntry
-                {
-                    ShortName = item.displayName.english,
-                    PrefabPath = item.shortname,
-                    ItemID = item.itemid,
-                    Category = GetItemCategory(item),
-                    IconUrl = iconUrl,
-                    IsItem = true
-                });
+                PrefabLibrary.Add(entry);
             }
 
             Puts($"Library Loaded! Found {PrefabLibrary.Count} total spawnable objects.");
