@@ -32,6 +32,7 @@ namespace Oxide.Plugins
 
         private readonly List<SpawnableEntry> AssetIndex = new List<SpawnableEntry>();
         private readonly List<SpawnableEntry> PrefabLibrary = new List<SpawnableEntry>();
+        private readonly List<string> Categories = new List<string>();
         #endregion
 
         #region Initialization
@@ -77,6 +78,13 @@ namespace Oxide.Plugins
 
                 PrefabLibrary.Add(entry);
             }
+
+            Categories.Clear();
+
+            Categories.AddRange(PrefabLibrary
+                .Select(entry => entry.Category)
+                .Distinct()
+                .ToList());
 
             Puts($"Library Loaded! Found {PrefabLibrary.Count} total spawnable objects.");
         }
