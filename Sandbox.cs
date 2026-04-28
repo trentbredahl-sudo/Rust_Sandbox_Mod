@@ -118,7 +118,7 @@ namespace Oxide.Plugins
             PlayerSelections.TryGetValue(player.userID, out currentCat);
             var items = GetItemsForCategory(currentCat);
 
-            DrawCategories(player, container, 14);
+            DrawCategories(player, container, Categories.Count);
             DrawContentGrid(player, container, items);
             DrawPagination(player, container, items.Count);
 
@@ -222,8 +222,7 @@ namespace Oxide.Plugins
 
         private string GetCategoryName(int index)
         {
-            string[] categories = { "NPC", "Vehicle", "Deployable", "Building", "Monuments", "World", "Weapons", "Tools", "Resource", "Food", "Ammo", "Components", "Clothing", "Items" };
-            return (index >= 0 && index < categories.Length) ? categories[index] : "Misc";
+            return (index >= 0 && index < Categories.Count) ? Categories[index] : "Misc";
         }
 
         private List<SpawnableEntry> GetItemsForCategory(int categoryIndex)
