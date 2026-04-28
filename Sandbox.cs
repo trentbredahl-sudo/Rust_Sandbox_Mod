@@ -7,8 +7,6 @@ using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Core.Libraries.Covalence;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Facepunch.Models.Leaderboard;
 
 namespace Oxide.Plugins
 {
@@ -34,13 +32,14 @@ namespace Oxide.Plugins
 
         private readonly List<SpawnableEntry> AssetIndex = new List<SpawnableEntry>();
         private readonly List<SpawnableEntry> PrefabLibrary = new List<SpawnableEntry>();
-        private Dictionary<string, string> RemoteIconMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
         #region Initialization
+
         void OnServerInitialized()
         {
-            FetchRemoteIcons();
+            LoadAssetIndex();
+            LoadLibrary();
             Puts("Sandbox Plugin Loaded! Type /sb or Middle-Click to open the menu.");
         }
 
@@ -50,53 +49,6 @@ namespace Oxide.Plugins
             {
                 CuiHelper.DestroyUi(player, UI_Main);
             }
-        }
-
-        private void FetchRemoteIcons()
-        {
-            // URL provided by user
-            string url = "https://raw.githubusercontent.com/trentbredahl-sudo/Rust_Sandbox_Mod/refs/heads/master/Rust/server/carbon/plugins/Entity_list.json";
-
-            Puts("Fetching remote icon mapping from GitHub...");
-            webrequest.Enqueue(url, null, (code, response) =>
-            {
-                if (code != 200 || string.IsNullOrEmpty(response))
-                {
-                    Puts($"Warning: Failed to fetch remote icon mapping from GitHub (Code: {code}). Check your .json!");
-                    LoadLibrary();
-                    return;
-                }
-
-                try
-                {
-                    var rawData = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
-                    RemoteIconMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-                    foreach (var kvp in rawData)
-                    {
-                        if (kvp.Value is JObject nested)
-                        {
-                            foreach (var prop in nested.Properties())
-                            {
-                                RemoteIconMapping[prop.Name] = prop.Value.ToString();
-                            }
-                        }
-                        else if (kvp.Value != null)
-                        {
-                            RemoteIconMapping[kvp.Key] = kvp.Value.ToString();
-                        }
-                    }
-
-                    Puts($"Loaded {RemoteIconMapping.Count} icons from GitHub.");
-                }
-                catch (Exception ex)
-                { 
-                   
-                    Puts($"Error parsing JSON data! {ex.Message}");           
-                }
-
-                LoadLibrary();
-            }, this);
         }
 
         private void LoadAssetIndex()
@@ -111,13 +63,13 @@ namespace Oxide.Plugins
 
             PrefabLibrary.Clear();
 
-            foreach ( var entry in AssetIndex )
+            foreach (var entry in AssetIndex)
             {
-                if ( entry.IsItem )
+                if (entry.IsItem)
                 {
                     ItemDefinition itemDef = ItemManager.FindItemDefinition(entry.ShortName);
 
-                    if ( itemDef != null)
+                    if (itemDef != null)
                     {
                         entry.ItemID = itemDef.itemid;
                     }
@@ -224,8 +176,6 @@ namespace Oxide.Plugins
 
                 if (!string.IsNullOrEmpty(entry.IconUrl))
                 {
-                    float iconPaddingX = 0.2f;
-                    float iconPaddingY = 0.1f;
 
                     container.Add(new CuiElement
                     {
@@ -261,30 +211,6 @@ namespace Oxide.Plugins
             container.Add(new CuiButton { Button = { Command = hasNext ? $"sb.page {page + 1}" : "", Color = hasNext ? "0.4 0.4 0.4 0.8" : "0.2 0.2 0.2 0.3" }, RectTransform = { AnchorMin = "0.55 0.1", AnchorMax = "0.6 0.9" }, Text = { Text = ">", Align = TextAnchor.MiddleCenter } }, UI_Footer);
         }
 
-        private string GetCategoryFromPath(string lowerPath)
-        {
-            if (lowerPath.Contains("/npc/")) return "NPC";
-            if (lowerPath.Contains("/vehicles/")) return "Vehicle";
-            if (lowerPath.Contains("/deployable/")) return "Deployable";
-            if (lowerPath.Contains("/building/")) return "Building";
-            if (lowerPath.Contains("/monuments/") || lowerPath.Contains("/radtown/")) return "Monuments";
-            return "World";
-        }
-
-        private string GetItemCategory(ItemDefinition item)
-        {
-            switch (item.category)
-            {
-                case ItemCategory.Weapon: return "Weapons";
-                case ItemCategory.Tool: return "Tools";
-                case ItemCategory.Resources: return "Resource";
-                case ItemCategory.Food: return "Food";
-                case ItemCategory.Ammunition: return "Ammo";
-                case ItemCategory.Component: return "Components";
-                case ItemCategory.Attire: return "Clothing";
-                default: return "Items";
-            }
-        }
 
         private string GetCategoryName(int index)
         {
