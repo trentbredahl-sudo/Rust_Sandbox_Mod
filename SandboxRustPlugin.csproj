@@ -35,7 +35,8 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Entity_list.json" />
+    <None Include="tools\AssetIndex.json" />
+    <None Include="tools\Entity_list.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Icons\admin_cliff_large_a.prefab.png" />

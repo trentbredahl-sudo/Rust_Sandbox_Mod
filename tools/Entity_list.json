@@ -1631,7 +1631,7 @@
     "cave_lift": "https://raw.githubusercontent.com/trentbredahl-sudo/Rust_Sandbox_Mod/refs/heads/master/Rust/server/carbon/plugins/Icons/cave_lift.prefab.png",
     "cave_lift_trigger": "",
     "chair.icethrone": "https://cdn.carbonmod.gg/items/chair.icethrone.png",
-    "elevator.static.office.top": "https://wiki.rustclash.com/img/items180/elevator.png",
+    "elevator.static.office.top": "https://wiki.rustclash.com/img/items180/elevator.png", 
     "CableTunnel": "",
     "sculpture.ice.deployed": "https://cdn.carbonmod.gg/items/sculpture.ice.png",
     "PressButton_OfficeElevatorCall": "https://raw.githubusercontent.com/trentbredahl-sudo/Rust_Sandbox_Mod/refs/heads/master/Rust/server/carbon/plugins/Icons/pressbutton_officeelevatorcall.prefab.png",

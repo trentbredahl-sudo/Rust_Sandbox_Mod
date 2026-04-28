@@ -31,6 +31,7 @@ namespace Oxide.Plugins
         private readonly Dictionary<ulong, int> PlayerSelections = new Dictionary<ulong, int>();
         private readonly Dictionary<ulong, int> PlayerPages = new Dictionary<ulong, int>();
 
+        private readonly List<SpawnableEntry> AssetIndex = new List<SpawnableEntry>();
         private readonly List<SpawnableEntry> PrefabLibrary = new List<SpawnableEntry>();
         private Dictionary<string, string> RemoteIconMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         #endregion
@@ -95,6 +96,13 @@ namespace Oxide.Plugins
 
                 LoadLibrary();
             }, this);
+        }
+
+        private void LoadAssetIndex()
+        {
+            AssetIndex.Clear();
+
+            AssetIndex.AddRange(Interface.Oxide.DataFileSystem.ReadObject<List<SpawnableEntry>>("Sandbox/AssetIndex"));
         }
 
         private void LoadLibrary()

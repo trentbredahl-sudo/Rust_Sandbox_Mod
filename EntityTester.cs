@@ -20,6 +20,7 @@ namespace Oxide.Plugins
 
     internal class TestResult
     {
+        
 
     }
 
