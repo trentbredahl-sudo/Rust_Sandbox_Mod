@@ -257,6 +257,7 @@ namespace Oxide.Plugins
             {
                 Item item = ItemManager.CreateByItemID(entry.ItemID, 1);
                 if (item != null) player.GiveItem(item);
+               
             }
             else
             {
@@ -278,6 +279,8 @@ namespace Oxide.Plugins
         }
         #endregion
     }
+
+    
 
     public class SpawnableEntry
     {
