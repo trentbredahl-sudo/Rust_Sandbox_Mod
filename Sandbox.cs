@@ -1,12 +1,13 @@
+using Newtonsoft.Json;
+using Oxide.Core;
+using Oxide.Core.Libraries.Covalence;
+using Oxide.Core.Plugins;
+using Oxide.Game.Rust.Cui;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Oxide.Core;
-using Oxide.Core.Plugins;
-using Oxide.Game.Rust.Cui;
-using Oxide.Core.Libraries.Covalence;
-using Newtonsoft.Json;
 
 namespace Oxide.Plugins
 {
@@ -85,6 +86,24 @@ namespace Oxide.Plugins
                 .Select(entry => entry.Category)
                 .Distinct()
                 .ToList());
+
+            var bad = new List<string>();
+
+            foreach (var entry in PrefabLibrary)
+            {
+                if (entry.IsItem) continue;
+
+                GameObject objectTest = GameManager.server.FindPrefab(entry.PrefabPath);
+                if (objectTest == null) 
+                {
+                    bad.Add(entry.PrefabPath);
+                }
+
+            }
+
+            Interface.Oxide.DataFileSystem.WriteObject("Sandbox/UnspawnablePrefabs", bad);
+
+            Puts($"Validated prefabs. {bad.Count} unspawnable -> data/Sandbox/UnspawnablePrefabs.json");
 
             Puts($"Library Loaded! Found {PrefabLibrary.Count} total spawnable objects.");
         }
