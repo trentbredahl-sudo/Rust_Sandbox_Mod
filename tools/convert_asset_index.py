@@ -37,6 +37,7 @@ _TOOLS_DIR = Path(__file__).parent
 DEFAULT_INPUT      = r"C:\RustModding\Icon Troubleshooting\RustEditAssetPath.md"
 DEFAULT_ITEMS_INPUT = str(_TOOLS_DIR / "Entity_list.json")
 DEFAULT_OUTPUT     = str(_TOOLS_DIR / "AssetIndex.json")
+DEFAULT_UNSPAWNABLE = r"C:\RustModding\Carbon Server\server\carbon\data\Sandbox\UnspawnablePrefabs.json"
 DEFAULT_ICON_BASE  = "https://raw.githubusercontent.com/trentbredahl-sudo/Rust_Sandbox_Mod/master/Icons/"
 DEFAULT_ICON_LAYOUT = "flat"   # "flat" => Icons/<filename>   ;   "nested" => Icons/<assets/.../filename>
 
@@ -357,6 +358,25 @@ def main() -> int:
             e["IconUrl"] = new_url
             urls_normalized += 1
 
+    # ----- Pass 4: prune unspawnable prefabs -----
+    # Plugin's ValidatePrefabs() dumps paths that GameManager.server.FindPrefab
+    # rejects (asset-scene-gated, deprecated, etc.). Drop them so the UI never
+    # offers something that fails on spawn. Items (IsItem=True) are left alone
+    # because their PrefabPath is a shortname, not a real prefab path.
+    pruned_count = 0
+    unspawnable_path = Path(DEFAULT_UNSPAWNABLE)
+    if unspawnable_path.is_file():
+        with unspawnable_path.open("r", encoding="utf-8") as f:
+            unspawnable_list = json.load(f)
+        unspawnable_set = set(unspawnable_list) if isinstance(unspawnable_list, list) else set()
+
+        before = len(entries)
+        entries = [
+            e for e in entries
+            if e.get("IsItem") or e.get("PrefabPath") not in unspawnable_set
+        ]
+        pruned_count = before - len(entries)
+
     # Sort entries: category first, items-after-prefabs within category, then shortname
     entries.sort(key=lambda e: (e["Category"], e["IsItem"], e["ShortName"]))
 
@@ -439,6 +459,12 @@ def main() -> int:
     print(f"  icons backfilled   : {fixes_applied}")
     print(f"Pass 3.5 (legacy URL normalization)")
     print(f"  urls rewritten     : {urls_normalized}")
+    print(f"Pass 4 (unspawnable prefab prune)")
+    if unspawnable_path.is_file():
+        print(f"  source             : {unspawnable_path}")
+        print(f"  entries removed    : {pruned_count}")
+    else:
+        print(f"  SKIPPED (not found): {unspawnable_path}")
     print("-" * 70)
     print(f"Total records in AssetIndex.json : {len(entries)}")
     print(f"Final tab count (categories)     : {len(final_histogram)}")
