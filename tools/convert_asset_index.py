@@ -358,6 +358,31 @@ def main() -> int:
             e["IconUrl"] = new_url
             urls_normalized += 1
 
+    # ----- Pass 3.6: preserve IconUrls from deployed AssetIndex.json -----
+    # Final URL authority is whatever already lives in the server data dir.
+    # This protects manual host swaps (e.g. GitHub -> Cloudflare R2) so a
+    # regen of the AssetIndex doesn't clobber the deployed URL set. Keyed
+    # by (PrefabPath, IsItem) which is unique across prefabs and items.
+    deployed_assetindex_path = Path(
+        r"C:\RustModding\Carbon Server\server\carbon\data\Sandbox\AssetIndex.json"
+    )
+    urls_preserved = 0
+    if deployed_assetindex_path.is_file():
+        with deployed_assetindex_path.open("r", encoding="utf-8") as f:
+            deployed = json.load(f)
+        url_map: dict[tuple[str, bool], str] = {}
+        if isinstance(deployed, list):
+            for d in deployed:
+                key = (d.get("PrefabPath", ""), bool(d.get("IsItem", False)))
+                url = d.get("IconUrl") or ""
+                if url:
+                    url_map[key] = url
+        for e in entries:
+            key = (e.get("PrefabPath", ""), bool(e.get("IsItem", False)))
+            if key in url_map and e.get("IconUrl") != url_map[key]:
+                e["IconUrl"] = url_map[key]
+                urls_preserved += 1
+
     # ----- Pass 4: prune unspawnable prefabs -----
     # Plugin's ValidatePrefabs() dumps paths that GameManager.server.FindPrefab
     # rejects (asset-scene-gated, deprecated, etc.). Drop them so the UI never
@@ -459,6 +484,11 @@ def main() -> int:
     print(f"  icons backfilled   : {fixes_applied}")
     print(f"Pass 3.5 (legacy URL normalization)")
     print(f"  urls rewritten     : {urls_normalized}")
+    print(f"Pass 3.6 (preserve URLs from deployed AssetIndex)")
+    if deployed_assetindex_path.is_file():
+        print(f"  urls preserved     : {urls_preserved}")
+    else:
+        print(f"  SKIPPED (not found): {deployed_assetindex_path}")
     print(f"Pass 4 (unspawnable prefab prune)")
     if unspawnable_path.is_file():
         print(f"  source             : {unspawnable_path}")

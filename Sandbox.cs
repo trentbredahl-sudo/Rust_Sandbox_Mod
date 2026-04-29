@@ -94,7 +94,7 @@ namespace Oxide.Plugins
                 if (entry.IsItem) continue;
 
                 GameObject objectTest = GameManager.server.FindPrefab(entry.PrefabPath);
-                if (objectTest == null) 
+                if (objectTest == null || objectTest.GetComponent<BaseEntity>() == null) 
                 {
                     bad.Add(entry.PrefabPath);
                 }
