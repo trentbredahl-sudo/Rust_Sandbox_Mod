@@ -94,7 +94,7 @@ namespace Oxide.Plugins
                 if (entry.IsItem) continue;
 
                 GameObject objectTest = GameManager.server.FindPrefab(entry.PrefabPath);
-                if (objectTest == null || objectTest.GetComponent<BaseEntity>() == null) 
+                if (objectTest == null || objectTest.GetComponent<BaseEntity>() == null || objectTest.GetComponent<BasePlayer>() != null)
                 {
                     bad.Add(entry.PrefabPath);
                 }
@@ -270,13 +270,25 @@ namespace Oxide.Plugins
 
             string pathOrName = arg.GetString(0);
             var entry = PrefabLibrary.FirstOrDefault(x => x.PrefabPath == pathOrName);
-            if (entry == null) return;
+
+
+            if (entry == null)
+            {
+                Puts($"I tried to find dir/path name for {pathOrName}, but the result did not match.");
+
+                return;
+
+            }
 
             if (entry.IsItem)
             {
                 Item item = ItemManager.CreateByItemID(entry.ItemID, 1);
                 if (item != null) player.GiveItem(item);
-               
+                else
+                {
+                    Puts($"I tried to spawn {entry.ShortName}, it says the item's status is {entry.ItemID}");
+                }
+
             }
             else
             {
@@ -285,8 +297,14 @@ namespace Oxide.Plugins
                 {
                     BaseEntity entity = GameManager.server.CreateEntity(entry.PrefabPath, hit.point, Quaternion.identity);
                     if (entity != null) entity.Spawn();
+                    else
+                    {
+                        Puts($"I tried to spawn {entry.PrefabPath}, does this path look correct for the entity?");
+                    }
                 }
             }
+
+
         }
 
         private void OnPlayerInput(BasePlayer player, InputState input) { if (input.WasJustPressed(BUTTON.FIRE_THIRD)) ToggleSandboxUI(player); }
@@ -299,7 +317,7 @@ namespace Oxide.Plugins
         #endregion
     }
 
-    
+
 
     public class SpawnableEntry
     {
