@@ -196,7 +196,7 @@ namespace Oxide.Plugins
 
                 container.Add(new CuiButton
                 {
-                    Button = { Command = $"sb.spawn {entry.PrefabPath}", Color = "0.2 0.2 0.2 0.8" },
+                    Button = { Command = $"sb.spawn {entry.PrefabPath.Replace(" ", "_SP_")}", Color = "0.2 0.2 0.2 0.8" },
                     RectTransform = { AnchorMin = $"{xMin} {yMin}", AnchorMax = $"{xMax} {yMax}" },
                     Text = { Text = "" }
                 }, UI_Content, $"Item.{i}");
@@ -269,6 +269,7 @@ namespace Oxide.Plugins
             if (player == null || !arg.HasArgs()) return;
 
             string pathOrName = arg.GetString(0);
+            pathOrName = pathOrName.Replace("_SP_", " ");
             var entry = PrefabLibrary.FirstOrDefault(x => x.PrefabPath == pathOrName);
 
 
