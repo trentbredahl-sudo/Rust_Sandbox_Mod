@@ -5,9 +5,11 @@ using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using ProtoBuf;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Melanchall.DryWetMidi.Core;
 
 namespace Oxide.Plugins
 {
@@ -20,8 +22,10 @@ namespace Oxide.Plugins
         private const string UI_Header = "Sandbox.Header";
         private const string UI_Content = "Sandbox.Content";
         private const string UI_Footer = "Sandbox.Footer";
+        private const string IconCacheMapKey = "Sandbox/IconCacheMap";
 
         private readonly string PanelColor = "0.1 0.1 0.1 0.8";
+        private static readonly string IconCacheDir = Path.Combine(Interface.Oxide.DataDirectory, "Sandbox", "IconCache");
 
         private int GridCols = 10;
         private int GridRows = 6;
@@ -42,6 +46,7 @@ namespace Oxide.Plugins
         {
             LoadAssetIndex();
             LoadLibrary();
+            LoadIconCache();
             Puts("Sandbox Plugin Loaded! Type /sb or Middle-Click to open the menu.");
         }
 
@@ -110,6 +115,56 @@ namespace Oxide.Plugins
         #endregion
 
         #region UI Logic
+
+        private void LoadIconCache()
+        {
+            Directory.CreateDirectory(IconCacheDir);
+            Dictionary<string, uint> map = Interface.Oxide.DataFileSystem.ReadObject<Dictionary<string, uint>>(IconCacheMapKey)
+                ?? new Dictionary<string, uint>();
+
+
+            foreach ( var entry in PrefabLibrary )
+            {
+                if (map.TryGetValue(entry.ShortName, out var fileId))
+                {
+                    entry.PngId = fileId;
+                }
+            }
+
+
+            string[] files = Directory.GetFiles(IconCacheDir, "*.png");
+            bool changedMap = false;
+
+
+            foreach ( var file in files )
+            {
+                string shortname = Path.GetFileNameWithoutExtension(file);
+
+                if (map.ContainsKey(shortname)) continue;
+
+                byte[] bytes = File.ReadAllBytes(file);
+                uint fileId = FileStorage.server.Store(
+                    bytes,
+                    FileStorage.Type.png,
+                    CommunityEntity.ServerInstance.net.ID
+                    );
+
+                map[shortname] = fileId;
+
+                var entry = PrefabLibrary.FirstOrDefault(x => x.ShortName == shortname);
+                if (entry != null) entry.PngId = fileId;
+                
+
+                changedMap = true;
+            }
+
+
+            if (changedMap)
+            {
+                Interface.Oxide.DataFileSystem.WriteObject(IconCacheMapKey, map);
+            }
+        }
+
         private void CreateSandboxUI(BasePlayer player, bool fullRedraw = false)
         {
             if (fullRedraw) CuiHelper.DestroyUi(player, UI_Main);
@@ -244,6 +299,7 @@ namespace Oxide.Plugins
             return (index >= 0 && index < Categories.Count) ? Categories[index] : "Misc";
         }
 
+
         private List<SpawnableEntry> GetItemsForCategory(int categoryIndex)
         {
             string targetCategory = GetCategoryName(categoryIndex);
@@ -318,12 +374,13 @@ namespace Oxide.Plugins
         #endregion
     }
 
-
-
     public class SpawnableEntry
     {
         public string ShortName, PrefabPath, Category, IconUrl;
         public int ItemID;
         public bool IsItem;
+
+        [JsonIgnore]
+        public uint PngId = 0;
     }
 }
