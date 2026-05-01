@@ -365,3 +365,6 @@ FodyWeavers.xsd
 /EntityTester.cs
 /Entity_list.json
 /Icon Buffer
+/tools/fix_assetindex.py
+/tools/AssetIndex_unrepaired.json
+/tools/AssetIndex_duplicates.json
